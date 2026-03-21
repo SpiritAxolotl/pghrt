@@ -94,6 +94,14 @@ export default {
         "headers": { "Location": url.toString() }
       });
     }
-    return await env.ASSETS.fetch(request);
+    const resp = await env.ASSETS.fetch(request);
+    if (resp.status === 404) {
+      const page404 = await env.ASSETS.fetch(new Request(`${url.origin}/404.html`));
+      return new Response(page404.body, {
+        "status": 404,
+        "statusText": "Not Found"
+      });
+    }
+    return resp;
   }
 }
