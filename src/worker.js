@@ -9,29 +9,37 @@ const embedFetchingApps = [
   "whatsapp"
 ];
 
-function createOpengraphHtml(head, title, description) {
-  const { document } = parseHTML(`<!DOCTYPE HTML><html><head>${head.innerHTML}</head><body</body></html>`);
-  function createMetaTag(property, content) {
+function createOpengraphHtml(head, title, description, color) {
+  const { document } = parseHTML(`<!DOCTYPE HTML><html><head>${head.innerHTML}</head><body></body></html>`);
+  function createMetaTag(attributes) {
     const meta = document.createElement("meta");
-    meta.setAttribute("property", property);
-    meta.setAttribute("content", content);
+    for (const [attribute, value] of Object.entries(attributes)) {
+      meta.setAttribute(attribute, value);
+    }
     document.head.appendChild(meta);
   }
   const titleElement = document.head.querySelector(`meta[property="og:title"]`);
-  if (titleElement !== null) {
+  if (titleElement) {
     titleElement.setAttribute("content", title);
   } else {
-    createMetaTag("og:title", title);
+    createMetaTag({ property: "og:title", content: title });
   }
   if (description) {
     const descriptionElement = document.head.querySelector(`meta[property="og:description"]`);
-    if (descriptionElement !== null) {
+    if (descriptionElement) {
       descriptionElement.setAttribute("content", description);
     } else {
-      createMetaTag("og:description", description);
+      createMetaTag({ property: "og:description", content: description });
     }
   }
-  console.log(document.toString());
+  if (color) {
+    const colorElement = document.head.querySelector(`meta[name="theme-color"]`);
+    if (colorElement) {
+      colorElement.setAttribute("content", color);
+    } else {
+      createMetaTag({ name: "theme-color", content: color });
+    }
+  }
   return document.toString();
 }
 
@@ -44,29 +52,46 @@ export default {
         const doc = await env.ASSETS.fetch(new Request(url.origin + "/")).then(response => response.text());
         const { document } = parseHTML(doc);
         const linkedElement = document.getElementById(url.pathname.slice(1));
-        let title;
-        let description;
-        if (/^\/S\d+$/i.test(url.pathname)) {
-          title = linkedElement.querySelector("h2").textContent;
-        } else {
-          title = linkedElement.querySelector("h3").textContent;
-          description = Array.from(linkedElement.querySelectorAll("p")).map(e=>e.textContent).join("\n");
+        if (linkedElement) {
+          let title;
+          let description;
+          let color;
+          if (/^\/Sx?\d+$/i.test(url.pathname)) {
+            title = linkedElement.querySelector("h2").textContent;
+            if (linkedElement.querySelector("h2 + div")) {
+              description = Array.from(linkedElement.querySelectorAll("p")).map(e=>e.textContent).join("\n");
+            }
+            color = "#6DCFFA";
+          } else {
+            title = linkedElement.querySelector("h3").textContent;
+            description = Array.from(linkedElement.querySelectorAll("p")).map(e=>e.textContent).join("\n");
+            color = "#F0AAB9";
+          }
+          title = title.replace("🔗", "")
+          title = title.replace(/^\s*\d+(\.\d+)?\s*/, "");
+          title = title.trim();
+          
+          title += " | pghrt.diy";
+          
+          return new Response(createOpengraphHtml(document.head, title, description, color), {
+            "status": 200,
+            "statusText": "OK",
+            "headers": { "Content-Type": "text/html" }
+          });
         }
         
-        title = title.replace("🔗", "").trim();
-        
-        return new Response(createOpengraphHtml(document.head, title, description), {
-          status: 202,
-          statusText: "OK",
-          headers: { "Content-Type": "text/html" }
+        return new Response(null, {
+          "status": 301,
+          "statusText": "Moved Permanently",
+          "headers": { "Location": "/" }
         });
       }
       url.hash = url.pathname.slice(1);
       url.pathname = "/";
       return new Response(null, {
-        status: 301,
-        statusText: "Moved Permanently",
-        headers: { "Location": url.toString() }
+        "status": 301,
+        "statusText": "Moved Permanently",
+        "headers": { "Location": url.toString() }
       });
     }
     return await env.ASSETS.fetch(request);

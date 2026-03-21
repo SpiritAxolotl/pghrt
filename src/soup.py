@@ -172,6 +172,15 @@ head_meta = soup.new_tag(
 )
 soup.head.extend([head_meta,"\n"])
 
+head_meta = soup.new_tag(
+    'meta',
+    attrs={
+        'name': 'theme-color',
+        'content': '#FFFFFF'
+    }
+)
+soup.head.extend([head_meta,"\n"])
+
 #
 # content manipulation and adjustment
 #
