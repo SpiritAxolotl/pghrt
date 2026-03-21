@@ -55,7 +55,7 @@ export default {
         if (linkedElement) {
           let title;
           let description;
-          let color;
+          let color = "#FFFFFF";
           if (/^\/Sx?\d+$/i.test(url.pathname)) {
             title = linkedElement.querySelector("h2").textContent;
             if (linkedElement.querySelector("h2 + div")) {
