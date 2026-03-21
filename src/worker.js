@@ -99,7 +99,8 @@ export default {
       const page404 = await env.ASSETS.fetch(new Request(`${url.origin}/404.html`));
       return new Response(page404.body, {
         "status": 404,
-        "statusText": "Not Found"
+        "statusText": "Not Found",
+        "headers": { "Content-Type": "text/plain" }
       });
     }
     return resp;
