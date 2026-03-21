@@ -16,3 +16,4 @@ contacts.txt
 /venv/
 /node_modules/
 package-lock.json
+/.wrangler/

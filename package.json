@@ -9,6 +9,8 @@
     "@types/node": "^25.5.0"
   },
   "scripts": {
-    "build": "node src/build.js"
+    "build": "node src/build.js",
+    "dev": "npx wrangler dev",
+    "deploy": "npx wrangler deploy"
   }
 }

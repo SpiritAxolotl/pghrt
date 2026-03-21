@@ -124,6 +124,8 @@ ref = soup.new_tag (
 # prepend body with buttons and rearranged table of contents
 soup.body.insert(0, toast, ref, toggles, header, toc)
 
+soup.find('html')['lang'] = language
+
 #
 # add html header info
 #
