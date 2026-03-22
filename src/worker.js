@@ -48,7 +48,7 @@ async function fetchLang(env, request) {
   const path = url.pathname.match(/^\/(.*)\/?$/)[1];
   const domain = env.DOMAIN === url.host.split(".").slice(1).join(".") ? env.DOMAIN : url.host;
   const dev = /^localhost:\d+$/.test(domain);
-  const subdomain = !dev ? url.hostname.slice(0, url.hostname.lastIndexOf(env.DOMAIN) - 1) : "";
+  const subdomain = !dev && domain !== url.host ? url.hostname.slice(0, url.hostname.lastIndexOf(env.DOMAIN) - 1) : undefined;
   
   if (path === "en" || subdomain === "en") {
     return new Response(null, {
@@ -59,7 +59,7 @@ async function fetchLang(env, request) {
     });
   }
   
-  if (subdomain !== "" && path === subdomain) {
+  if (subdomain && path === subdomain) {
     return new Response(null, {
       "status": 301,
       "headers": {
@@ -68,7 +68,10 @@ async function fetchLang(env, request) {
     });
   }
   
-  return await env.ASSETS.fetch(request);
+  const resp = await env.ASSETS.fetch(`${url.protocol}//${domain}/${subdomain ?? ""}`);
+  return new Response(resp.body, {
+    "headers": { "Content-Type": "text/html" }
+  });
 }
 
 export default {
@@ -123,20 +126,22 @@ export default {
         "headers": { "Location": url.toString() }
       });
     }
-    console.log(env.ASSETS);
-    const resp = await fetchLang(env, request);
-    if (resp.status === 404) {
-      let origin = `https://${url.host.split(".").slice(1).join(".")}`;
-      if (url.host.split(".").length === 1) {
-        origin = "http://" + url.hostname;
+    if (url.pathname.split(".").length === 1) {
+      const resp = await fetchLang(env, request);
+      if (resp.status === 404) {
+        let origin = `https://${url.host.split(".").slice(1).join(".")}`;
+        if (url.host.split(".").length === 1) {
+          origin = "http://" + url.hostname;
+        }
+        const page404 = await env.ASSETS.fetch(new Request(`${origin}/404.html`));
+        return new Response(page404.body, {
+          "status": 404,
+          "statusText": "Not Found",
+          "headers": { "Content-Type": "text/plain" }
+        });
       }
-      const page404 = await env.ASSETS.fetch(new Request(`${origin}/404.html`));
-      return new Response(page404.body, {
-        "status": 404,
-        "statusText": "Not Found",
-        "headers": { "Content-Type": "text/plain" }
-      });
+      return resp;
     }
-    return resp;
+    return await env.ASSETS.fetch(request);
   }
 }
