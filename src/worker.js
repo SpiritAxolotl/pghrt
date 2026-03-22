@@ -46,7 +46,6 @@ function createOpengraphHtml(head, title, description, color) {
 async function fetchLang(env, request) {
   const url = new URL(request.url);
   const path = url.pathname.match(/^\/(.*)\/?$/)[1];
-  const englishSelectors = ["pghrt", "en", "index", ""];
   const domain = env.DOMAIN === url.host.split(".").slice(1).join(".") ? env.DOMAIN : url.host;
   const dev = /^localhost:\d+$/.test(domain);
   const subdomain = !dev ? url.hostname.slice(0, url.hostname.lastIndexOf(env.DOMAIN) - 1) : "";
@@ -114,7 +113,6 @@ export default {
         
         return new Response(null, {
           "status": 301,
-          "statusText": "Moved Permanently",
           "headers": { "Location": "/" }
         });
       }
@@ -122,10 +120,10 @@ export default {
       url.pathname = "/";
       return new Response(null, {
         "status": 301,
-        "statusText": "Moved Permanently",
         "headers": { "Location": url.toString() }
       });
     }
+    console.log(env.ASSETS);
     const resp = await fetchLang(env, request);
     if (resp.status === 404) {
       let origin = `https://${url.host.split(".").slice(1).join(".")}`;

@@ -8,6 +8,7 @@ configDotenv({ quiet: true });
 const trash = os.platform() === "win32" ? "NUL" : "/dev/null";
 
 function run(cmd) {
+  console.log("Running:", cmd);
   try {
     execSync(cmd, { stdio: "inherit" });
   } catch (err) {
