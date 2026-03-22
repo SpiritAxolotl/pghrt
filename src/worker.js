@@ -100,7 +100,7 @@ export default {
           let title;
           let description;
           let color = "#FFFFFF";
-          if (/^\/Sx?\d+$/i.test(url.pathname)) {
+          if (/^\/S((\d*\.SS)?x)?\d+$/i.test(url.pathname)) {
             title = linkedElement.querySelector("h2").textContent;
             if (linkedElement.querySelector("h2 + div")) {
               description = Array.from(linkedElement.querySelectorAll("p")).map(e=>e.textContent).join("\n");
