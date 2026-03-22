@@ -10,5 +10,8 @@
   "compatibility_flags": ["nodejs_compat"],
   "dev": {
     "port": 8080
+  },
+  "vars": {
+    "DOMAIN": "pghrt.spax.zone"
   }
 }

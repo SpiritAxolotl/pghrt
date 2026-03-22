@@ -2,6 +2,8 @@ import { execSync } from "node:child_process";
 import readline from "node:readline";
 import fs from "node:fs";
 import os from "node:os";
+import { configDotenv } from "dotenv";
+configDotenv({ quiet: true });
 
 const trash = os.platform() === "win32" ? "NUL" : "/dev/null";
 
@@ -19,10 +21,14 @@ function buildLanguage(lc="") {
   
   const inputPath = `trans/${langInput}/pghrt_${langInput}`;
   
+  if (!fs.existsSync(".venv")) {
+    run(`python -m venv .venv`);
+    run(`.venv/bin/pip install -r requirements.txt`);
+  }
   run(`latexmk -pdf -outdir=pdfs -silent ${inputPath}`);
   run(`latexmk -c -outdir=export -silent ${inputPath}`);
   run(`latexmlc --destination=export/${pageName}.html --log=${trash} ${inputPath}`);
-  run(`python src/soup.py ${langInput}`);
+  run(`.venv/bin/python src/soup.py ${langInput} ${process.env.DOMAIN}`);
 }
 
 async function main() {

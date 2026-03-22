@@ -23,13 +23,14 @@ if len(sys.argv) < 2:
     sys.exit(1) 
 
 # check if too many codes are used for some reason
-if len(sys.argv) > 2:
-    print("TOO MANY LANGUAGE CODES. Usage: python soup.py <language code>") 
-    sys.exit(1) 
+#if len(sys.argv) > 2:
+#    print("TOO MANY LANGUAGE CODES. Usage: python soup.py <language code>") 
+#    sys.exit(1) 
 
 # build spice cabinet to make soup for each language
 # file path relative to main. example: trans/de/spices_de.csv
 language = sys.argv[1]
+domain = sys.argv[2]
 spice_name = "spices_" + language + ".csv"
 cabinet_file = os.path.join("trans",language,spice_name)
 print("Language used: ",language)
@@ -38,12 +39,12 @@ print("Language used: ",language)
 # en carve out for mandatory index.html and no subdomain
 if language == "en":
     html_loc_name = "index.html"
-    og_url_tag = "https://pghrt.diy"
+    og_url_tag = "https://" + domain
 else:
     html_loc_name = language + ".html"
-    og_url_tag = "https://" + language + ".pghrt.diy"
+    og_url_tag = "https://" + language + "." + domain
 html_file = os.path.join("export",html_loc_name)
-cover_tag = "https://pghrt.diy/img/cover_" + language + ".png"
+cover_tag = "/img/cover_" + language + ".png"
 
 if not os.path.isfile(html_file):
     print("ERROR:",html_file,"DOES NOT EXIST. Is your language code wrong or did you not build the HTML?")
@@ -143,8 +144,8 @@ meta_headers = [
 
 # links: (rel, type, href)
 link_headers = [
-    ('icon', 'image/png', 'https://pghrt.diy/img/favicon.png'),
-    ('stylesheet', 'text/css', 'https://pghrt.diy/pghrtcss.css')
+    ('icon', 'image/png', '/img/favicon.png'),
+    ('stylesheet', 'text/css', '/pghrtcss.css')
 ]
 
 for attribs in meta_headers:
@@ -167,7 +168,7 @@ for attribs in link_headers:
 head_meta = soup.new_tag(
     'script',
     type='text/javascript',
-    src='https://pghrt.diy/pghrtjs.js',
+    src='/pghrtjs.js',
     defer='true'
 )
 soup.head.extend([head_meta,"\n"])
@@ -184,6 +185,9 @@ soup.head.extend([head_meta,"\n"])
 #
 # content manipulation and adjustment
 #
+
+for element in soup.find_all(attrs={'title': 'In A PRACTICAL GUIDE TO FEMINIZING HRT'}):
+    del element["title"]
 
 # find all the section and question headers then add a click to copy icon
 # localization position 4: "Click to copy"
@@ -209,18 +213,20 @@ soup.find(href="PDF_LINK")['href'] = "https://raw.githubusercontent.com/Juicyste
 # can't get latexml to play nice with graphicspath so this is easier
 for element in soup.select('figure > img'):
     old_string = element['src']
-    element['src'] = 'https://pghrt.diy/img/' + old_string
+    element['src'] = '/img/' + old_string
 
 # hardcoding the other asset links so it plays nice with the subdomain
-soup.find(href="LaTeXML.css")['href'] = "https://pghrt.diy/LaTeXML.css"
-soup.find(href="ltx-article.css")['href'] = "https://pghrt.diy/ltx-article.css"
+soup.find(href="LaTeXML.css")['href'] = "/LaTeXML.css"
+soup.find(href="ltx-article.css")['href'] = "/ltx-article.css"
 
 # insert language flag links
 lang_links = soup.find('p', string="LANGUAGE-CODE-DOT-PGHRT-DOT-DIY")
 lang_links.clear()
 first_flag = True
 for lc, flag in lang_flags.items():
-    url = "https://" + lc + ".pghrt.diy"
+    url = "https://" + lc + "." + domain
+    if lc == 'en':
+        url = "https://" + domain
     new_flag = soup.new_tag(
         'a',
         **{'class':'ltx_ref ltx_href'},
@@ -239,9 +245,9 @@ for lc, flag in lang_flags.items():
 cute = soup.new_tag(
     'img',
     id='cute',
-    src="https://pghrt.diy/img/pghrt_88x31.png"
+    src="/img/pghrt_88x31.png"
 )
-soup.find('section',id="Sx1").insert(0,cute)
+soup.find('section',id="Sx1").insert_before(cute)
 
 # replacing \DTMNow with the footer timestamp because there aren't latexml
 # bindings for the datetime2 package and i want it to look prettier

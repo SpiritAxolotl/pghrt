@@ -43,13 +43,45 @@ function createOpengraphHtml(head, title, description, color) {
   return document.toString();
 }
 
+async function fetchLang(env, request) {
+  const url = new URL(request.url);
+  const path = url.pathname.match(/^\/(.*)\/?$/)[1];
+  const englishSelectors = ["pghrt", "en", "index", ""];
+  const domain = env.DOMAIN === url.host.split(".").slice(1).join(".") ? env.DOMAIN : url.host;
+  const dev = /^localhost:\d+$/.test(domain);
+  const subdomain = !dev ? url.hostname.slice(0, url.hostname.lastIndexOf(env.DOMAIN) - 1) : "";
+  
+  if (path === "en" || subdomain === "en") {
+    return new Response(null, {
+      "status": 301,
+      "headers": {
+        "Location": `${url.protocol}//${domain}/`
+      }
+    });
+  }
+  
+  if (subdomain !== "" && path === subdomain) {
+    return new Response(null, {
+      "status": 301,
+      "headers": {
+        "Location": `${url.protocol}//${subdomain}.${domain}/`
+      }
+    });
+  }
+  
+  return await env.ASSETS.fetch(request);
+}
+
 export default {
   async fetch(request, env, ctx) {
     const ua = request.headers.get("User-Agent");
     const url = new URL(request.url);
     if (/^\/S(\d+(\.SSx?\d+)?|x\d+)$/i.test(url.pathname)) {
       if (embedFetchingApps.some(app=>ua.includes(app))) {
-        const doc = await env.ASSETS.fetch(new Request(url.origin + "/")).then(response => response.text());
+        if (url.pathname.split(".").length > 1) {
+          return await env.ASSETS.fetch(request);
+        }
+        const doc = await fetchLang(env, request).then(response => response.html());
         const { document } = parseHTML(doc);
         const linkedElement = document.getElementById(url.pathname.slice(1));
         if (linkedElement) {
@@ -94,9 +126,13 @@ export default {
         "headers": { "Location": url.toString() }
       });
     }
-    const resp = await env.ASSETS.fetch(request);
+    const resp = await fetchLang(env, request);
     if (resp.status === 404) {
-      const page404 = await env.ASSETS.fetch(new Request(`${url.origin}/404.html`));
+      let origin = `https://${url.host.split(".").slice(1).join(".")}`;
+      if (url.host.split(".").length === 1) {
+        origin = "http://" + url.hostname;
+      }
+      const page404 = await env.ASSETS.fetch(new Request(`${origin}/404.html`));
       return new Response(page404.body, {
         "status": 404,
         "statusText": "Not Found",
