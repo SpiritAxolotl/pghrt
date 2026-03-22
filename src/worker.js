@@ -48,7 +48,7 @@ async function fetchLang(env, request) {
   const path = url.pathname.match(/^\/(.*)\/?$/)[1];
   const domain = env.DOMAIN === url.host.split(".").slice(1).join(".") ? env.DOMAIN : url.host;
   const dev = /^localhost:\d+$/.test(domain);
-  const subdomain = !dev && domain !== url.host ? url.hostname.slice(0, url.hostname.lastIndexOf(env.DOMAIN) - 1) : undefined;
+  const subdomain = !dev && domain !== url.host ? url.hostname.slice(0, url.hostname.lastIndexOf(env.DOMAIN) - 1) : "";
   
   if (path === "en" || subdomain === "en") {
     return new Response(null, {
@@ -68,7 +68,16 @@ async function fetchLang(env, request) {
     });
   }
   
-  const resp = await env.ASSETS.fetch(`${url.protocol}//${domain}/${subdomain ?? ""}`);
+  if (/\w{2}/.test(path) && path !== subdomain) {
+    return new Response(null, {
+      "status": 301,
+      "headers": {
+        "Location": `${url.protocol}//${path ? path + "." : ""}${domain}/`
+      }
+    });
+  }
+  
+  const resp = await env.ASSETS.fetch(`${url.protocol}//${domain}/${subdomain}`);
   return new Response(resp.body, {
     "headers": { "Content-Type": "text/html" }
   });
