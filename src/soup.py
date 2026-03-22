@@ -142,6 +142,15 @@ meta_headers = [
     ('og:description', cabinet[3])
 ]
 
+head_meta = soup.new_tag(
+    'meta',
+    attrs={
+        'name': 'theme-color',
+        'content': '#FFFFFF'
+    }
+)
+soup.head.extend([head_meta,"\n"])
+
 # links: (rel, type, href)
 link_headers = [
     ('icon', 'image/png', '/img/favicon.png'),
@@ -170,15 +179,6 @@ head_meta = soup.new_tag(
     type='text/javascript',
     src='/pghrtjs.js',
     defer='true'
-)
-soup.head.extend([head_meta,"\n"])
-
-head_meta = soup.new_tag(
-    'meta',
-    attrs={
-        'name': 'theme-color',
-        'content': '#FFFFFF'
-    }
 )
 soup.head.extend([head_meta,"\n"])
 
