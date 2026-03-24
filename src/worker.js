@@ -1,12 +1,12 @@
 import { parseHTML } from "linkedom";
 
 const embedFetchingApps = [
-  "+https://discordapp.com",
-  "+https://fluxer.app",
-  "support@bsky.app",
-  "twitterbot",
-  "telegrambot",
-  "whatsapp"
+  /Discordbot/i,
+  /Fluxerbot/i,
+  /Bluesky Cardyb/i,
+  /TwitterBot/i,
+  /TelegramBot/i,
+  /WhatsApp/i
 ];
 
 function createOpengraphHtml(head, title, description, color) {
@@ -92,7 +92,7 @@ export default {
     const ua = request.headers.get("User-Agent");
     const url = new URL(request.url);
     if (/^\/S(\d+(\.SSx?\d+)?|x\d+)$/i.test(url.pathname)) {
-      if (embedFetchingApps.some(app=>ua.toLowerCase().includes(app))) {
+      if (embedFetchingApps.some(app=>app.test(ua))) {
         const doc = await fetchLang(env, request).then(response => response.text());
         const { document } = parseHTML(doc);
         const linkedElement = document.getElementById(url.pathname.slice(1));
