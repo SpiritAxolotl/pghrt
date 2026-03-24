@@ -92,6 +92,7 @@ export default {
     const ua = request.headers.get("User-Agent");
     const url = new URL(request.url);
     if (/^\/S(\d+(\.SSx?\d+)?|x\d+)$/i.test(url.pathname)) {
+      console.log(embedFetchingApps.some(app=>ua.toLowerCase().includes(app)));
       if (embedFetchingApps.some(app=>ua.includes(app))) {
         const doc = await fetchLang(env, request).then(response => response.text());
         const { document } = parseHTML(doc);
