@@ -2,6 +2,7 @@
   "name": "pghrt",
   "compatibility_date": "2026-03-20",
   "main": "src/worker.js",
+  "workers_dev": false,
   "assets": {
     "directory": "./export",
     "binding": "ASSETS",
