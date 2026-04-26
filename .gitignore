@@ -18,3 +18,5 @@ contacts.txt
 package-lock.json
 /.wrangler/
 .env
+/export/*.html
+!/export/404.html
