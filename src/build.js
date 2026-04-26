@@ -2,8 +2,6 @@ import { execSync } from "node:child_process";
 import readline from "node:readline";
 import fs from "node:fs";
 import os from "node:os";
-import { configDotenv } from "dotenv";
-configDotenv({ quiet: true });
 
 const trash = os.platform() === "win32" ? "NUL" : "/dev/null";
 
