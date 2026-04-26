@@ -151,13 +151,11 @@ const meta_headers = [
   ["og:description", cabinet[3]],
 ];
 
-
 // links: (rel, type, href)
 const link_headers = [
   ["icon", "image/png", "/img/favicon.png"],
   ["stylesheet", "text/css", "/pghrtcss.css"]
 ];
-
 
 for (const [property, content] of meta_headers) {
   const meta = soup.createElement("meta");
@@ -165,6 +163,7 @@ for (const [property, content] of meta_headers) {
   meta.setAttribute("content", content);
   soup.head.appendChild(meta);
 }
+
 for (const [rel, type, href] of link_headers) {
   const link = soup.createElement("link");
   link.rel = rel;
@@ -222,7 +221,6 @@ for (const img of soup.querySelectorAll(`figure > img`)) {
 // (hardcoding was removed, forgot to remove the rest, oops)
 //soup.querySelector(`[href="LaTeXML.css"]`).href = "/LaTeXML.css";
 //soup.querySelector(`[href="ltx-article.css"]`).href = "/ltx-article.css";
-
 
 // insert language flag links
 const lang_links = Array.from(soup.querySelectorAll("p")).find(p=>p.textContent.includes("LANGUAGE-CODE-DOT-PGHRT-DOT-DIY"));
