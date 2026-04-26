@@ -20,14 +20,18 @@ function buildLanguage(lc="") {
   
   const inputPath = `trans/${langInput}/pghrt_${langInput}`;
   
+  /*
   if (!fs.existsSync(".venv")) {
     run(`python -m venv .venv`);
     run(`.venv/bin/pip install -r requirements.txt`);
   }
+  */
+  
   run(`latexmk -pdf -outdir=pdfs -silent ${inputPath}`);
   run(`latexmk -c -outdir=export -silent ${inputPath}`);
   run(`latexmlc --destination=export/${pageName}.html --log=${trash} ${inputPath}`);
-  run(`.venv/bin/python src/soup.py ${langInput} ${process.env.DOMAIN}`);
+  run(`npm run soup -- ${langInput}`);
+  //run(`.venv/bin/python src/soup.py ${langInput} ${process.env.DOMAIN}`);
 }
 
 async function main() {

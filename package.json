@@ -10,6 +10,7 @@
   "scripts": {
     "build": "node src/build.js",
     "dev": "npx wrangler dev",
+    "soup": "node src/soup.js",
     "deploy": "npx wrangler deploy"
   }
 }
