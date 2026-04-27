@@ -86,7 +86,7 @@ header.classList.add("header");
 
 const menu = soup.createElement("button");
 menu.id = "menu";
-menu.setAttribute("onclick", `document.getElementById("sidebar").classList.toggle("show")`);
+menu.setAttribute("onclick", `document.getElementById('sidebar').classList.toggle('show')`);
 menu.textContent = "☰";
 header.appendChild(menu);
 
