@@ -86,7 +86,7 @@ header.classList.add("header");
 
 const menu = soup.createElement("button");
 menu.id = "menu";
-menu.onclick = `document.getElementById("sidebar").classList.toggle("show")`;
+menu.setAttribute("onclick", `document.getElementById("sidebar").classList.toggle("show")`);
 menu.textContent = "☰";
 header.appendChild(menu);
 
@@ -202,7 +202,7 @@ for (const element of soup.querySelectorAll(`h2, h3`)) {
   new_chain.classList.add("chain");
   new_chain.href = `#${hash}`;
   new_chain.title = cabinet[4];
-  new_chain.onclick = `copyURI(event)`;
+  new_chain.setAttribute("onclick", `copyURI(event)`);
   new_chain.textContent = "🔗";
   element.appendChild(new_chain);
 }
