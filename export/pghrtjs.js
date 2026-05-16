@@ -2,7 +2,7 @@
 // it's still pretty scary ngl it's a giant toc but at least it starts hidden
 function initTocOnClick() {
 	const colls = document.querySelectorAll(".ltx_tocentry.ltx_tocentry_section > .ltx_ref");
-
+	
 	for (const coll of colls) {
 		coll.addEventListener("click", (event) => {
 			const content = coll.nextElementSibling;
@@ -22,13 +22,23 @@ function initTocOnClick() {
 	}
 }
 
+// turns the hash links into the redirect links
+function initRedirectChainLinks() {
+	for (const a of document.querySelectorAll(`.chain`)) {
+		const href = a.getAttribute("href");
+		if (href.startsWith("#")) {
+			a.href = href.slice(1);
+		}
+	}
+}
+
 // copy on click for section permalinks
 function copyURI(event) {
 	event.preventDefault();
 	try {
 		navigator.clipboard.writeText(
 			// ensures url is without hash, then add on correct hash
-			window.location.href.replace(window.location.hash, "") + event.target.getAttribute("href").replace("#", "")
+			window.location.href.replace(window.location.hash, "")// + event.target.getAttribute("href").replace("#", "")
 		);
 	} catch (e) {
 		console.error(e);
@@ -188,6 +198,7 @@ function returnScroll() {
 function main() {
 	const funcs = [
 		initTocOnClick,
+		initRedirectChainLinks,
 		detectColorScheme,
 		detectFont,
 		initThemeToggle,
@@ -196,6 +207,7 @@ function main() {
 		returnScroll
 	];
 	for (const func of funcs) {
+		//this ensures later functions are run even if an earlier one has an error
 		try {
 			func();
 		} catch (e) {
