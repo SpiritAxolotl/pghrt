@@ -113,12 +113,12 @@ export default {
           if (/^\/S((\d*\.SS)?x)?\d+$/i.test(url.pathname)) {
             title = linkedElement.querySelector("h2, h3").textContent;
             if (linkedElement.querySelector("h2 + div")) {
-              description = Array.from(linkedElement.querySelectorAll("p")).map(p=>p.textContent).join("\n");
+              description = Array.from(linkedElement.querySelectorAll("p")).map(p=>p.textContent).join("\n\n");
             }
             color = "#6DCFFA";
           } else {
             title = linkedElement.querySelector("h3").textContent;
-            description = Array.from(linkedElement.querySelectorAll("p")).map(h3=>h3.textContent).join("\n");
+            description = Array.from(linkedElement.querySelectorAll("p")).map(p=>p.textContent).join("\n\n");
             color = "#F0AAB9";
           }
           if (linkedElement.querySelector("img")) {
