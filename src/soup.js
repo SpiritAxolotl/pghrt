@@ -70,7 +70,7 @@ if (!fs.existsSync(cabinet_file)) {
 //
 
 // seasonings for soup. it's a chinese 5 spice blend [read: html loc. also there are five entries in the localization file]
-const cabinet = fs.readFileSync(cabinet_file, "utf8").split("|"); //i know this doesn't cover the literal one edge case that csvs can have but honestly i dont care
+const cabinet = fs.readFileSync(cabinet_file, "utf8").split("\n"); //i know this doesn't cover the literal one edge case that csvs can have but honestly i dont care
 
 // Parse the file into soup
 /** just treat this like `document` */
