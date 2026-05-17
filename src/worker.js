@@ -9,7 +9,7 @@ const embedFetchingApps = [
   /WhatsApp/i
 ];
 
-function createOpengraphHtml(head, title, description, color) {
+function createOpengraphHtml(head, title, description, color, image) {
   const { document } = parseHTML(`<!DOCTYPE HTML><html><head>${head.innerHTML}</head><body></body></html>`);
   function createMetaTag(attributes) {
     const meta = document.createElement("meta");
@@ -39,6 +39,10 @@ function createOpengraphHtml(head, title, description, color) {
     } else {
       createMetaTag({ name: "theme-color", content: color });
     }
+  }
+  if (image) {
+    createMetaTag({ name: "twitter:card", content: "summary_large_image" });
+    createMetaTag({ property: "og:image", content: image });
   }
   return document.toString();
 }
@@ -100,24 +104,33 @@ export default {
           let title;
           let description;
           let color = "#FFFFFF";
+          let image;
+          
+          for (const li of linkedElement.querySelectorAll("li:has(p)")) {
+            const p = li.querySelector("p");
+            p.textContent = "  " + li.querySelector("span.ltx_tag").textContent + " " + p.textContent;
+          }
           if (/^\/S((\d*\.SS)?x)?\d+$/i.test(url.pathname)) {
             title = linkedElement.querySelector("h2, h3").textContent;
             if (linkedElement.querySelector("h2 + div")) {
-              description = Array.from(linkedElement.querySelectorAll("p")).map(e=>e.textContent).join("\n");
+              description = Array.from(linkedElement.querySelectorAll("p")).map(p=>p.textContent).join("\n");
             }
             color = "#6DCFFA";
           } else {
             title = linkedElement.querySelector("h3").textContent;
-            description = Array.from(linkedElement.querySelectorAll("p")).map(e=>e.textContent).join("\n");
+            description = Array.from(linkedElement.querySelectorAll("p")).map(h3=>h3.textContent).join("\n");
             color = "#F0AAB9";
           }
-          title = title.replace("🔗", "")
+          if (linkedElement.querySelector("img")) {
+            image = "https://" + env.DOMAIN + linkedElement.querySelector("img").src;
+          }
+          title = title.replace("🔗", "");
           title = title.replace(/^\s*\d+(\.\d+)?\s*/, "");
           title = title.trim();
           
           title += " | pghrt.diy";
           
-          return new Response(createOpengraphHtml(document.head, title, description, color), {
+          return new Response(createOpengraphHtml(document.head, title, description, color, image), {
             "status": 200,
             "statusText": "OK",
             "headers": { "Content-Type": "text/html" }
