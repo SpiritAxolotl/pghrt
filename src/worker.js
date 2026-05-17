@@ -45,9 +45,9 @@ function createOpengraphHtml(head, title, description, color, images) {
       document.head.removeChild(meta);
     }
     createMetaTag({ name: "twitter:card", content: "summary_large_image" });
-    //will max out at 4 but we'll let discord and the other platforms handle that
-    //(and not like it happens in this document)
-    for (const image of images) {
+    //will max out at 4 embed images
+    for (let i=0; i<images.length && i<4; i++) {
+      const image = images[i];
       createMetaTag({ property: "og:image", content: image });
     }
   }
