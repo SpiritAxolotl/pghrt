@@ -113,21 +113,25 @@ export default {
           let color = "#FFFFFF";
           const images = [];
           
+          //this doesn't support nested ones but it's fineeee
           for (const li of linkedElement.querySelectorAll("li:has(p)")) {
             const p = li.querySelector("p");
-            p.textContent = li.querySelector("span.ltx_tag").textContent + " " + p.textContent;
+            //p.textContent = li.querySelector("span.ltx_tag").textContent + " " + p.textContent;
+            p.textContent = "- " + p.textContent;
           }
+          
           if (/^\/S((\d*\.SS)?x)?\d+$/i.test(url.pathname)) {
             title = linkedElement.querySelector("h2, h3").textContent;
             if (linkedElement.querySelector("h2 + div")) {
-              description = Array.from(linkedElement.querySelectorAll("p")).map(p=>p.textContent).join("\n\n");
+              description = Array.from(linkedElement.querySelectorAll("p")).map(p=>p.textContent).join("\n");
             }
             color = "#6DCFFA";
           } else {
             title = linkedElement.querySelector("h3").textContent;
-            description = Array.from(linkedElement.querySelectorAll("p")).map(p=>p.textContent).join("\n\n");
+            description = Array.from(linkedElement.querySelectorAll("p")).map(p=>p.textContent).join("\n");
             color = "#F0AAB9";
           }
+          //description.replaceAll(/^(?<=^- .+\n)(.+)$/gm, "\n$1");
           for (const image of linkedElement.querySelectorAll("img")) {
             images.push("https://" + env.DOMAIN + linkedElement.querySelector("img").src);
           }
