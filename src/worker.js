@@ -9,7 +9,7 @@ const embedFetchingApps = [
   /WhatsApp/i
 ];
 
-function createOpengraphHtml(head, title, description, color, image) {
+function createOpengraphHtml(head, title, description, color, images) {
   const { document } = parseHTML(`<!DOCTYPE HTML><html><head>${head.innerHTML}</head><body></body></html>`);
   function createMetaTag(attributes) {
     const meta = document.createElement("meta");
@@ -40,9 +40,16 @@ function createOpengraphHtml(head, title, description, color, image) {
       createMetaTag({ name: "theme-color", content: color });
     }
   }
-  if (image) {
+  if (images) {
+    for (const meta of document.querySelectorAll(`head > meta[property="og:image"]`)) {
+      document.head.removeChild(meta);
+    }
     createMetaTag({ name: "twitter:card", content: "summary_large_image" });
-    createMetaTag({ property: "og:image", content: image });
+    //will max out at 4 but we'll let discord and the other platforms handle that
+    //(and not like it happens in this document)
+    for (const image of images) {
+      createMetaTag({ property: "og:image", content: image });
+    }
   }
   return document.toString();
 }
@@ -104,11 +111,11 @@ export default {
           let title;
           let description;
           let color = "#FFFFFF";
-          let image;
+          const images = [];
           
           for (const li of linkedElement.querySelectorAll("li:has(p)")) {
             const p = li.querySelector("p");
-            p.textContent = "  " + li.querySelector("span.ltx_tag").textContent + " " + p.textContent;
+            p.textContent = li.querySelector("span.ltx_tag").textContent + " " + p.textContent;
           }
           if (/^\/S((\d*\.SS)?x)?\d+$/i.test(url.pathname)) {
             title = linkedElement.querySelector("h2, h3").textContent;
@@ -121,8 +128,8 @@ export default {
             description = Array.from(linkedElement.querySelectorAll("p")).map(p=>p.textContent).join("\n\n");
             color = "#F0AAB9";
           }
-          if (linkedElement.querySelector("img")) {
-            image = "https://" + env.DOMAIN + linkedElement.querySelector("img").src;
+          for (const image of linkedElement.querySelectorAll("img")) {
+            images.push("https://" + env.DOMAIN + linkedElement.querySelector("img").src);
           }
           title = title.replace("🔗", "");
           title = title.replace(/^\s*\d+(\.\d+)?\s*/, "");
@@ -130,7 +137,7 @@ export default {
           
           title += ` | ${env.DOMAIN}`;
           
-          return new Response(createOpengraphHtml(document.head, title, description, color, image), {
+          return new Response(createOpengraphHtml(document.head, title, description, color, images), {
             "status": 200,
             "statusText": "OK",
             "headers": { "Content-Type": "text/html" }
