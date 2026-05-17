@@ -38,7 +38,7 @@ function copyURI(event) {
 	try {
 		navigator.clipboard.writeText(
 			// ensures url is without hash, then add on correct hash
-			window.location.href.replace(window.location.hash, "")// + event.target.getAttribute("href").replace("#", "")
+			window.location.href.replace(window.location.hash, "") + event.target.getAttribute("href") //.replace("#", "")
 		);
 	} catch (e) {
 		console.error(e);
