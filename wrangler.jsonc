@@ -13,6 +13,7 @@
     "port": 8080
   },
   "vars": {
-    "DOMAIN": "pghrt.spax.zone"
+    "DOMAIN": "pghrt.spax.zone",
+    "REPOSITORY_LINK": "https://github.com/SpiritAxolotl/pghrt"
   }
 }

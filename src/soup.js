@@ -133,7 +133,7 @@ soup.body.insertAdjacentElement("afterbegin", toggles);
 soup.body.insertAdjacentElement("afterbegin", ref);
 soup.body.insertAdjacentElement("afterbegin", toast);
 
-//set the html's lang property to... the language lol (latex defaults it to english)
+// set the html's lang property to... the language lol (latex defaults it to english)
 soup.querySelector(`html`).setAttribute("lang", language);
 
 //
@@ -172,7 +172,7 @@ for (const [rel, type, href] of link_headers) {
   soup.head.appendChild(link);
 }
 
-//add embed color for sites that embed stuff (discord, telegram, etc)
+// add embed color for sites that embed stuff (discord, telegram, etc)
 const meta_theme_color = soup.createElement("meta");
 meta_theme_color.setAttribute("name", "theme-color");
 meta_theme_color.setAttribute("content", "#FFFFFF");
@@ -188,7 +188,14 @@ soup.head.appendChild(script);
 // content manipulation and adjustment
 //
 
-//remove long "title" attribute from the elements that have it
+// add a selfhosting notice at the top (if selfhosted)
+if (process.env.DOMAIN !== "pghrt.diy") {
+  const disclaimer = soup.querySelector(".ltx_abstract");
+  //will improve this in future
+  disclaimer.insertAdjacentHTML("beforebegin", `<div class="ltx_abstract" id="selfhost-notice"> <h6 class="ltx_title ltx_title_abstract">SELFHOSTING NOTICE</h6><p class="ltx_p">This is a selfhosted instance of Katie's pghrt guide (with small QoL changes). The main instance can be found at <a href="https://pghrt.diy/" target="_blank">pghrt.diy</a>, and the repository being used can be found <a href="${process.env.REPOSITORY_LINK}" target="_blank">here</a>.</p><p class="ltx_p">Everything past this notice is written by Katie in her first person perspective. Enjoy reading!</p></div>`);
+}
+
+// remove long "title" attribute from the elements that have it
 for (const element of soup.querySelectorAll(`[title="In A PRACTICAL GUIDE TO FEMINIZING HRT"]`)) {
   element.removeAttribute("title");
 }

@@ -128,7 +128,7 @@ export default {
           title = title.replace(/^\s*\d+(\.\d+)?\s*/, "");
           title = title.trim();
           
-          title += " | pghrt.diy";
+          title += ` | ${env.DOMAIN}`;
           
           return new Response(createOpengraphHtml(document.head, title, description, color, image), {
             "status": 200,
