@@ -9,7 +9,10 @@ const embedFetchingApps = [
   /WhatsApp/i
 ];
 
-function createOpengraphHtml(head, title, description, color, images) {
+export const idRegex = /^\/S(\d+(\.SSx?\d+)?|x\d+)$/i;
+export const idSubsectionRegex = /^\/S((\d*\.SS)?x)?\d+$/i;
+
+export function createOpengraphHtml(head, title, description, color, images) {
   const { document } = parseHTML(`<!DOCTYPE HTML><html><head>${head.innerHTML}</head><body></body></html>`);
   function createMetaTag(attributes) {
     const meta = document.createElement("meta");
@@ -61,7 +64,7 @@ async function fetchLang(env, request) {
   const dev = /^localhost:\d+$/.test(domain);
   const subdomain = !dev && domain !== url.host ? url.hostname.slice(0, url.hostname.lastIndexOf(env.DOMAIN) - 1) : "";
   
-  if (/^\/S(\d+(\.SSx?\d+)?|x\d+)$/i.test(url.pathname)) {
+  if (idRegex.test(url.pathname)) {
     return await env.ASSETS.fetch(`${url.protocol}//${domain}/${subdomain}`);
   }
   
@@ -92,66 +95,57 @@ async function fetchLang(env, request) {
     });
   }
   
-  const resp = await env.ASSETS.fetch(`${url.protocol}//${domain}/${subdomain}`);
-  return new Response(resp.body, {
-    "headers": { "Content-Type": "text/html" }
-  });
+  return await env.ASSETS.fetch(`${url.protocol}//${domain}/${subdomain}`);
+}
+
+export async function createEmbedPage(pathname) {
+  const { document } = parseHTML(doc);
+  const linkedElement = document.getElementById(pathname.slice(1));
+  if (linkedElement) {
+    let title = "";
+    let description = "";
+    let color = "#FFFFFF";
+    const images = [];
+    
+    //this doesn't support nested ones but it's fineeee
+    for (const li of linkedElement.querySelectorAll("li:has(p)")) {
+      const p = li.querySelector("p");
+      //p.textContent = li.querySelector("span.ltx_tag").textContent + " " + p.textContent;
+      p.textContent = "- " + p.textContent;
+    }
+    
+    if (idSubsectionRegex.test(pathname)) {
+      title = linkedElement.querySelector("h2, h3").textContent;
+      if (linkedElement.querySelector("h2 + div")) {
+        description = Array.from(linkedElement.querySelectorAll("p")).map(p=>p.textContent).join("\n");
+      }
+      color = "#6DCFFA";
+    } else {
+      title = linkedElement.querySelector("h3").textContent;
+      description = Array.from(linkedElement.querySelectorAll("p")).map(p=>p.textContent).join("\n");
+      color = "#F0AAB9";
+    }
+    //description.replaceAll(/^(?<=^- .+\n)(.+)$/gm, "\n$1");
+    for (const image of linkedElement.querySelectorAll("img")) {
+      images.push("https://" + env.DOMAIN + image.src);
+    }
+    title = title.replace("🔗", "");
+    title = title.replace(/^\s*\d+(\.\d+)?\s*/, "");
+    title = title.trim();
+    
+    title += ` | ${env.DOMAIN}`;
+    
+    return createOpengraphHtml(document.head, title, description, color, images);
+  }
 }
 
 export default {
   async fetch(request, env, ctx) {
     const ua = request.headers.get("User-Agent");
     const url = new URL(request.url);
-    if (/^\/S(\d+(\.SSx?\d+)?|x\d+)$/i.test(url.pathname)) {
+    if (idRegex.test(url.pathname)) {
       if (embedFetchingApps.some(app=>app.test(ua))) {
-        const doc = await fetchLang(env, request).then(response => response.text());
-        const { document } = parseHTML(doc);
-        const linkedElement = document.getElementById(url.pathname.slice(1));
-        if (linkedElement) {
-          let title;
-          let description;
-          let color = "#FFFFFF";
-          const images = [];
-          
-          //this doesn't support nested ones but it's fineeee
-          for (const li of linkedElement.querySelectorAll("li:has(p)")) {
-            const p = li.querySelector("p");
-            //p.textContent = li.querySelector("span.ltx_tag").textContent + " " + p.textContent;
-            p.textContent = "- " + p.textContent;
-          }
-          
-          if (/^\/S((\d*\.SS)?x)?\d+$/i.test(url.pathname)) {
-            title = linkedElement.querySelector("h2, h3").textContent;
-            if (linkedElement.querySelector("h2 + div")) {
-              description = Array.from(linkedElement.querySelectorAll("p")).map(p=>p.textContent).join("\n");
-            }
-            color = "#6DCFFA";
-          } else {
-            title = linkedElement.querySelector("h3").textContent;
-            description = Array.from(linkedElement.querySelectorAll("p")).map(p=>p.textContent).join("\n");
-            color = "#F0AAB9";
-          }
-          //description.replaceAll(/^(?<=^- .+\n)(.+)$/gm, "\n$1");
-          for (const image of linkedElement.querySelectorAll("img")) {
-            images.push("https://" + env.DOMAIN + linkedElement.querySelector("img").src);
-          }
-          title = title.replace("🔗", "");
-          title = title.replace(/^\s*\d+(\.\d+)?\s*/, "");
-          title = title.trim();
-          
-          title += ` | ${env.DOMAIN}`;
-          
-          return new Response(createOpengraphHtml(document.head, title, description, color, images), {
-            "status": 200,
-            "statusText": "OK",
-            "headers": { "Content-Type": "text/html" }
-          });
-        }
-        
-        return new Response(null, {
-          "status": 301,
-          "headers": { "Location": "/" }
-        });
+        return createEmbedPage(request, env);
       }
       url.hash = url.pathname.slice(1);
       url.pathname = "/";
@@ -176,6 +170,7 @@ export default {
       }
       return resp;
     }
+    
     return await env.ASSETS.fetch(request);
   }
 }
