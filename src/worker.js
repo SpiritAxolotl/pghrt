@@ -159,7 +159,7 @@ async function fetchLang(env, request) {
   return await env.ASSETS.fetch(`${url.protocol}//${domain}/${subdomain}`);
 }
 
-export function createEmbedPage(document=new Document(), id="", env={}) {
+export function createEmbedPage(document=new Document(), id="", env={}, isItDiscord=false) {
   const linkedElement = document.getElementById(id);
   if (linkedElement) {
     let title = "";
@@ -167,7 +167,7 @@ export function createEmbedPage(document=new Document(), id="", env={}) {
     const Colors = {
       BLUE: "#6DCFFA",
       PINK: "#F0AAB9",
-      WHITE: "#FEFEFE", //DISCORD DOESN'T PREVIEW PURE WHITE ANYMORE RAHHHHHHHH
+      WHITE: isItDiscord ? "#FEFEFE" : "#FFFFFF", //DISCORD DOESN'T PREVIEW PURE WHITE ANYMORE RAHHHHHHHH
     };
     Object.freeze(Colors); //unnecessary but whatever it's fun
     
@@ -243,7 +243,7 @@ export default {
     if (matchesSection(path)) {
       //if (embedFetchingApps.some(app=>app.test(ua))) {
         const { document } = parseHTML(await env.ASSETS.fetch(url.origin).then(response=>response.text()));
-        const page = createEmbedPage(document, path, env);
+        const page = createEmbedPage(document, path, env, /Discordbot/i.test(ua));
         return new Response(page.toString(), {
           "status": 200,
           "statusText": "OK",

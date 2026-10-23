@@ -26,7 +26,7 @@ function createEmbedPages(langInput="", pageName="") {
     .map(s=>s.id)
     .filter(id=>matchesSection(id));
   for (const id of sectionIds) {
-    const embedHtml = createEmbedPage(document, id, env);
+    const embedHtml = createEmbedPage(document, id, env, true);
     if (!fs.existsSync(`${exportDir}/embeds/${langInput}/`)) {
       fs.mkdirSync(`${exportDir}/embeds/${langInput}/`);
     }
