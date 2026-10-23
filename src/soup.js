@@ -19,7 +19,11 @@ if (fs.existsSync("wrangler.jsonc")) {
 // 4. fix "refer to caption" localization!!!
 
 // MUST ADD FOR NEW LANGS
-const lang_flags = {"en": "🇺🇸 English", "de": "🇩🇪 Deutsch", "fr": "🇫🇷 Français"};
+const lang_flags = {
+  "en": "🇺🇸 English",
+  "de": "🇩🇪 Deutsch",
+  "fr": "🇫🇷 Français"
+};
 
 //
 // begin parsing file
@@ -47,7 +51,7 @@ console.log("Language used: ", language);
 
 // choose html and cover for language
 // en carve out for mandatory index.html and no subdomain
-let html_loc_name = language + ".html";
+let html_loc_name =`${language}.html`;
 let og_url_tag = `https://${language}.${domain}`;
 if (language === "en") {
   html_loc_name = "index.html";
@@ -175,7 +179,7 @@ for (const [rel, type, href] of link_headers) {
 // add embed color for sites that embed stuff (discord, telegram, etc)
 const meta_theme_color = soup.createElement("meta");
 meta_theme_color.setAttribute("name", "theme-color");
-meta_theme_color.setAttribute("content", "#FFFFFF");
+meta_theme_color.setAttribute("content", "#F0AAB9");
 soup.head.appendChild(meta_theme_color);
 
 const script = soup.createElement("script");
@@ -192,13 +196,25 @@ soup.head.appendChild(script);
 if (process.env.DOMAIN !== "pghrt.diy") {
   const disclaimer = soup.querySelector(".ltx_abstract");
   //will improve this in future
-  disclaimer.insertAdjacentHTML("beforebegin", `<div class="ltx_abstract" id="selfhost-notice"> <h6 class="ltx_title ltx_title_abstract">SELFHOSTING NOTICE</h6><p class="ltx_p">This is a selfhosted instance of Katie's pghrt guide (with small QoL changes). The main instance can be found at <a href="https://pghrt.diy/" target="_blank">pghrt.diy</a>, and the repository being used can be found <a href="${process.env.REPOSITORY_LINK}" target="_blank">here</a>.</p><p class="ltx_p">Everything past this notice is written by Katie in her first person perspective. Enjoy reading!</p></div>`);
+  disclaimer.insertAdjacentHTML("beforebegin", `<div class="ltx_abstract" id="selfhost-notice"> <h6 class="ltx_title ltx_title_abstract">SELFHOSTING NOTICE</h6><p class="ltx_p">This is a selfhosted instance of Katie's pghrt guide (with small QoL changes). The flagship instance can be found at <a href="https://pghrt.diy/" target="_blank">pghrt.diy</a>, and the repository being used can be found <a href="${process.env.REPOSITORY_LINK}" target="_blank">here</a>.</p><p class="ltx_p">Everything past this notice is written by Katie in her first person perspective. Enjoy reading!</p></div>`);
 }
 
 // remove long "title" attribute from the elements that have it
 for (const element of soup.querySelectorAll(`[title="In A PRACTICAL GUIDE TO FEMINIZING HRT"]`)) {
   element.removeAttribute("title");
 }
+for (const element of soup.querySelectorAll(`[title$=" ‣ A PRACTICAL GUIDE TO FEMINIZING HRT"]`)) {
+  element.title = element.title.substring(0, element.title.indexOf(" ‣ A PRACTICAL GUIDE TO FEMINIZING HRT"));
+}
+
+// remove the ltx_ prefix from the classes with it (requires me to change the css too so it's commented out for now but it DOES work)
+/*for (const element of soup.querySelectorAll(`[class*="ltx_"]`)) {
+  const ltxClassList = element.classList.values().filter(c=>c.startsWith("ltx_"));
+  for (const className of ltxClassList) {
+    element.classList.remove(className);
+    element.classList.add(className.substring(4)); //magic number but WHATEVER
+  }
+}*/
 
 // find all the section and question headers then add a click to copy icon
 // localization position 4: "Click to copy"

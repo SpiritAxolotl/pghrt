@@ -1,8 +1,8 @@
 {
   "type": "module",
   "dependencies": {
-    "linkedom": "^0.18.12",
-    "wrangler": "^4.85.0"
+    "linkedom": "^0.18.14",
+    "wrangler": "^4.152.0"
   },
   "devDependencies": {
     "@types/node": "^25.5.0"
@@ -12,5 +12,9 @@
     "dev": "npx wrangler dev",
     "soup": "node src/soup.js",
     "deploy": "npx wrangler deploy"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "workerd@1.20261019.1": true
   }
 }
