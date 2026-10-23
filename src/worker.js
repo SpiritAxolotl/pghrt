@@ -167,7 +167,7 @@ export function createEmbedPage(document=new Document(), id="", env={}) {
     const Colors = {
       BLUE: "#6DCFFA",
       PINK: "#F0AAB9",
-      WHITE: "#FFFFFF",
+      WHITE: "#FEFEFE", //DISCORD DOESN'T PREVIEW PURE WHITE ANYMORE RAHHHHHHHH
     };
     Object.freeze(Colors); //unnecessary but whatever it's fun
     
