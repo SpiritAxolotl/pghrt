@@ -232,7 +232,7 @@ export function createEmbedPage(document=new Document(), id="", env={}, isItDisc
       li.querySelector(`:scope > span`).remove();
       const p = li.querySelector("p");
       //p.textContent = li.querySelector("span.ltx_tag").textContent + " " + p.textContent;
-      p.textContent = "- " + p.textContent;
+      p.innerHTML = "- " + p.innerHTML;
     }
     
     if (sectionRegex.test(id)) {
