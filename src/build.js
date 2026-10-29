@@ -9,6 +9,15 @@ const env = JSON.parse(fs.readFileSync("wrangler.jsonc", { encoding: "utf8" })).
 const exportDir = "export"; //should not start or end with a slash
 //const trash = os.platform() === "win32" ? "NUL" : "/dev/null";
 
+if (fs.existsSync("wrangler.jsonc")) {
+  const wrangler = JSON.parse(fs.readFileSync("wrangler.jsonc", "utf8"));
+  if (wrangler.vars) {
+    for (const [k, v] of Object.entries(wrangler.vars)) {
+      process.env[k] = v;
+    }
+  }
+}
+
 function run(cmd) {
   console.log("Running:", cmd);
   try {
@@ -52,7 +61,7 @@ function buildLanguage(lc="") {
   run(`latexmk -c -outdir=${exportDir} -silent ${inputPath}`);
   run(`latexmlc --destination=${exportDir}/${pageName}.html --log=logs/latexml-${new Date().toISOString().replaceAll(/:-/g, "")}-${langInput}.log ${inputPath}`);
   run(`npm run soup -- ${langInput}`);
-  //createEmbedPages(langInput, pageName, process.env);
+  createEmbedPages(langInput, pageName, process.env);
   //run(`.venv/bin/python src/soup.py ${langInput} ${process.env.DOMAIN}`);
 }
 

@@ -2,7 +2,7 @@
   "type": "module",
   "dependencies": {
     "linkedom": "^0.18.14",
-    "wrangler": "^4.152.0"
+    "wrangler": "^4.155.0"
   },
   "devDependencies": {
     "@types/node": "^25.5.0"

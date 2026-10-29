@@ -1,6 +1,6 @@
 {
   "name": "pghrt",
-  "compatibility_date": "2026-03-20",
+  "compatibility_date": "2026-10-28",
   "main": "src/worker.js",
   "workers_dev": false,
   "assets": {

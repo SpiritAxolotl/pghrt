@@ -9,6 +9,17 @@
         "content": ""
       },
       {
+        "type": 12,
+        "items": [
+          {
+            "media": {
+              "url": ""
+            },
+            "description": ""
+          }
+        ]
+      },
+      {
         "type": 1,
         "components": [
           {

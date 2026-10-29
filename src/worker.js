@@ -24,12 +24,6 @@ export function matchesSection(id="") {
   ].some(re=>re.test(id));
 }
 
-function getSectionNum(id) {
-  return id.match(/S(\d+)/i)
-}
-function getSubsectionNum(id) {
-  return 
-}
 function isExtraSection(id) {
   return [
     extraSectionRegex,
@@ -37,36 +31,99 @@ function isExtraSection(id) {
   ].some(re=>re.test(id));
 }
 
-/*function markdownify(element=new Element()) {
+const NODE_TYPES = {
+  "1":  "ELEMENT_NODE",
+  "2":  "ATTRIBUTE_NODE",
+  "3":  "TEXT_NODE",
+  "4":  "CDATA_SECTION_NODE",
+  "7":  "PROCESSING_INSTRUCTION_NODE",
+  "8":  "COMMENT_NODE",
+  "9":  "DOCUMENT_NODE",
+  "10": "DOCUMENT_TYPE_NODE",
+  "11": "DOCUMENT_FRAGMENT_NODE"
+};
+Object.freeze(NODE_TYPES);
+
+function markdownifyElement(element=new Element(), env) {
   let md = "";
   
+  function escapeText(text="") {
+    return text.replaceAll(/[\*_\|\-]/g, "\\$1").trim();
+  }
+  
+  let section = false;
+  if (sectionRegex.test(element.id)) {
+    section = true;
+  }
   for (let i=0; i<element.childNodes.length; i++) {
     const node = element.childNodes[i];
-    if (node.nodeType === "ELEMENT_NODE") {
-      const el = node.parentElement;
-      if (el.classList.contains("ltx_title")) {
-        el.querySelector(`a.chain`).remove();
-      } else if (el.classList.contains("ltx_tag")) {
-        
+    const parent = node.parentElement;
+    
+    if (NODE_TYPES[node.nodeType] === "ELEMENT_NODE") {
+      const classes = node.classList;
+      if (classes.contains("ltx_title")) {
+        //parent.querySelector(`a.chain`).remove();
+        const ltxTag = node.querySelector(".ltx_tag");
+        if (ltxTag) {
+          md += `# [${escapeText(ltxTag.textContent)} – ${escapeText(ltxTag.nextSibling.textContent)}](<https://${env.DOMAIN}/${escapeText(node.querySelector("a").href)}>)\n`;
+        } else {
+          md += `# [${escapeText(node.firstChild.textContent)}](<${escapeText(node.querySelector("a").href)}>)\n`;
+        }
+        if (section) {
+          break;
+        }
+        continue;
       }
-    } else if (node.nodeType === "TEXT_NODE") {
-      
+      if (classes.contains("ltx_itemize")) {
+        for (const item of node.querySelectorAll("li > .ltx_para")) {
+          md += /*"- " +*/ markdownifyElement(item, env).replace(/\n{2,}$/, "\n");
+        }
+        continue;
+      }
+      if (classes.contains("ltx_figure") || classes.contains("ltx_table")) {
+        continue;
+      }
+      let text = markdownifyElement(node, env);
+      if (classes.contains("ltx_font_italic")) {
+        text = `_${text}_`;
+      }
+      if (classes.contains("ltx_font_bold")) {
+        text = `**${text}**`;
+      }
+      if (classes.contains("ltx_ref")) {
+        if (!node.href.startsWith("http")) {
+          text = `[${text}](<https://${env.DOMAIN}/${node.href}>)`;
+        } else {
+          text = `[${text}](<${node.href}>)`;
+        }
+      }
+      if (classes.contains("ltx_framed_underline")) {
+        text = `__${text}__`;
+      }
+      md += text;
+    } else if (NODE_TYPES[node.nodeType] === "TEXT_NODE") {
+      if (parent.classList.contains("ltx_para") && node.nextSibling === null) {
+        md += node.textContent + "\n\n";
+      } else {
+        if (node.textContent !== "\n") {
+          md += node.textContent.replace(/\n{2,}$/, "\n");
+        }
+      }
     }
   }
-  //const header = element.querySelector(`:scope > .ltx_title`);
-  //header.querySelector(`a.chain`).remove();
-  //const section = header.querySelector(`:scope > .ltx_tag`);
-  //let sectionText = section ? section.textContent.trim() : "";
-  //if (section) section.remove();
-  //md += `# [${sectionText !== "" ? sectionText + " - " : ""}${header.textContent.trim()}](#${element.id})`;
-  
-  
   
   return md;
-}*/
+}
+
+export function markdownify(element=new Element(), env) {
+  let md = markdownifyElement(element, env);
+  return md.replaceAll(/\n{3,}/g, "\n\n").trim();
+}
 
 function createOpengraphHtml(title="", description="", color="", images=[], id) {
-  const { document } = parseHTML(`<!DOCTYPE HTML><html><head><meta http-equiv="content-type" content="text/html; charset=UTF-8"><style>:root{color-scheme: light dark;}</style></head><body></body></html>`);
+  const { document } = parseHTML(
+    `<!DOCTYPE HTML><html><head><meta http-equiv="content-type" content="text/html; charset=UTF-8"><style>:root{color-scheme: light dark;}</style></head><body></body></html>`
+  );
   function createMetaTag(attributes) {
     const meta = document.createElement("meta");
     for (const [attribute, value] of Object.entries(attributes).reverse()) { //reversed cuz it inserts at the front
@@ -74,33 +131,19 @@ function createOpengraphHtml(title="", description="", color="", images=[], id) 
     }
     document.head.appendChild(meta);
   }
+  createMetaTag({ name: "robots", content: "noindex" });
   if (title) {
-    /*const ogTitleElement = document.head.querySelector(`meta[property="og:title"]`);
-    if (ogTitleElement) {
-      ogTitleElement.setAttribute("content", title);
-    } else {*/
     const titleElement = document.createElement("title");
     titleElement.textContent = title;
     document.head.appendChild(titleElement);
     createMetaTag({ property: "og:title", content: title });
-    //}
   }
   if (description) {
-    /*const ogDescriptionElement = document.head.querySelector(`meta[property="og:description"]`);
-    if (ogDescriptionElement) {
-      ogDescriptionElement.setAttribute("content", description);
-    } else {*/
     createMetaTag({ name: "description", content: description });
     createMetaTag({ property: "og:description", content: description });
-    //}
   }
   if (color) {
-    /*const themeColorElement = document.head.querySelector(`meta[name="theme-color"]`);
-    if (colorElement) {
-      themeColorElement.setAttribute("content", color);
-    } else {*/
     createMetaTag({ name: "theme-color", content: color });
-    //}
   }
   if (images) {
     for (const meta of document.querySelectorAll(`head > meta[property="og:image"]`)) {
@@ -118,12 +161,18 @@ function createOpengraphHtml(title="", description="", color="", images=[], id) 
   return document;
 }
 
-async function fetchLang(env, request) {
-  const url = new URL(request.url);
-  const path = url.pathname.match(/^\/(.*)\/?$/)[1];
+function getLangInfo(env, url) {
   const domain = env.DOMAIN === url.host.split(".").slice(1).join(".") ? env.DOMAIN : url.host;
   const dev = /^localhost:\d+$/.test(domain);
   const subdomain = !dev && domain !== url.host ? url.hostname.slice(0, url.hostname.lastIndexOf(env.DOMAIN) - 1) : "";
+  const lang = subdomain ? subdomain : "en";
+  return {domain, subdomain, lang};
+}
+
+async function fetchLang(env, request) {
+  const url = new URL(request.url);
+  const path = url.pathname.match(/^\/(.*)\/?$/)[1];
+  const {domain, subdomain} = getLangInfo(env, url);
   
   if (isExtraSection(path)) {
     return await env.ASSETS.fetch(`${url.protocol}//${domain}/${subdomain}`);
@@ -171,17 +220,16 @@ export function createEmbedPage(document=new Document(), id="", env={}, isItDisc
     };
     Object.freeze(Colors); //unnecessary but whatever it's fun
     
-    let color = Colors.PINK; //old: Colors.WHITE;
-    if (sectionRegex.test(id)) {
-      color = Colors.BLUE;
-    } else {
+    let color = Colors.BLUE;
+    if (!sectionRegex.test(id)) {
       const index = Array.from(linkedElement.parentElement.querySelectorAll(`:scope > section`)).indexOf(linkedElement);
       color = Object.values(Colors)[(index+1) % 3];
     }
     const images = [];
     
     //this doesn't support nested ones but it's fineeee
-    for (const li of linkedElement.querySelectorAll("li:has(p)")) {
+    for (const li of linkedElement.querySelectorAll(":scope > div > ul > li:has(> div > p)")) {
+      li.querySelector(`:scope > span`).remove();
       const p = li.querySelector("p");
       //p.textContent = li.querySelector("span.ltx_tag").textContent + " " + p.textContent;
       p.textContent = "- " + p.textContent;
@@ -192,17 +240,15 @@ export function createEmbedPage(document=new Document(), id="", env={}, isItDisc
       if (linkedElement.querySelector("h2 + div")) {
         description = Array.from(linkedElement.querySelectorAll("p")).map(p=>p.textContent).join("\n");
       }
-      //color = Colors.BLUE;
     } else {
-      title = linkedElement.querySelector("h3").textContent;
+      title = linkedElement.querySelector("h2, h3").textContent;
       description = Array.from(linkedElement.querySelectorAll("p")).map(p=>p.textContent).join("\n");
-      //color = Colors.PINK;
     }
     //description.replaceAll(/^(?<=^- .+\n)(.+)$/gm, "\n$1");
     for (const image of linkedElement.querySelectorAll(":scope > figure > img")) {
-      const figcaption = image.parentElement.querySelector("figcaption");
+      const figcaption = image.parentElement.querySelector(":scope > figcaption > span").nextSibling;
       let alt = figcaption.textContent;
-      alt = alt.substring(alt.length - alt.indexOf(figcaption.querySelector("span").textContent));
+      //alt = alt.substring(alt.length - alt.indexOf(figcaption.querySelector("span").textContent));
       images.push({
         url: `https://${env.DOMAIN}${image.src}`,
         alt
@@ -217,14 +263,26 @@ export function createEmbedPage(document=new Document(), id="", env={}, isItDisc
     const page = createOpengraphHtml(title, description, color, images, id);
     
     //discord's components v2 embed info documented at https://docs.discord.com/developers/link-previews/component-embeds
-    /*const script = document.createElement("script");
+    const script = document.createElement("script");
     script.id = "discord:component-embed";
     script.type = "application/vnd.discord.component-embed+json";
     const components = JSON.parse(fs.readFileSync("src/discord-components-template.json", { encoding: "utf8" }));
     components.component.accent_color = parseInt(color.slice(1), 16);
-    components.component.components[0].content = markdownify(linkedElement.cloneNode(true));
+    components.component.components[0].content = markdownify(linkedElement, env); /*.cloneNode(true)*/
+    if (images.length === 0) {
+      components.component.components.splice(1, 1);
+    } else {
+      const imgs = [];
+      for (const image of images) {
+        const imgformat = {...components.component.components[1].items[0]};
+        imgformat.media.url = image.url;
+        imgformat.description = image.alt;
+        imgs.push(imgformat);
+      }
+      components.component.components[1].items = imgs;
+    }
     script.innerHTML = JSON.stringify(components);
-    page.head.appendChild(script);*/
+    page.head.appendChild(script);
     return page.toString();
   } else {
     console.log("id:", id);
@@ -240,20 +298,21 @@ export default {
     const ua = request.headers.get("User-Agent");
     const url = new URL(request.url);
     const path = url.pathname.slice(1);
+    if (request.method !== "GET") {
+      return new Response(null, {
+        "status": 405,
+        "allow": "GET"
+      });
+    }
     if (matchesSection(path)) {
-      //if (embedFetchingApps.some(app=>app.test(ua))) {
-        const { document } = parseHTML(await env.ASSETS.fetch(url.origin).then(response=>response.text()));
-        const page = createEmbedPage(document, path, env, /Discordbot/i.test(ua));
-        return new Response(page.toString(), {
-          "status": 200,
-          "statusText": "OK",
-          "headers": { "Content-Type": "text/html" }
-        });
-      //}
+      if (embedFetchingApps.some(app=>app.test(ua))) {
+        const { lang } = getLangInfo(env, url);
+        return env.ASSETS.fetch(`${url.protocol}//${url.host}/embeds/${lang}/${path}.html`);
+      }
       url.hash = path;
       url.pathname = "/";
       return new Response(null, {
-        "status": 301,
+        "status": 302,
         "headers": { "Location": url.toString() }
       });
     }
